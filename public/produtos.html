@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos - Sistema PDV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .produtos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .search-container input {
+            padding-left: 40px;
+            height: 45px;
+            border-radius: 30px;
+            border: 1px solid #e0e0e0;
+            width: 100%;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .btn-novo-produto {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        
+        .produto-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .produto-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .produto-card .produto-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .produto-card .produto-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .produto-card .produto-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .produto-card .produto-codigo {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .produto-card .produto-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .produto-card .produto-actions button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .produto-card .produto-estoque {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .produto-card .estoque-baixo {
+            background-color: #FFEBEE;
+            color: var(--danger-color);
+        }
+        
+        .produto-card .estoque-medio {
+            background-color: #FFF8E1;
+            color: var(--warning-color);
+        }
+        
+        .produto-card .estoque-bom {
+            background-color: #E8F5E9;
+            color: var(--success-color);
+        }
+        
+        .produtos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .produtos-empty {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .produtos-empty i {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .produtos-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .produtos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="../img/logo-small.png" alt="Logo" onerror="this.src='../img/logo-placeholder-small.png'; this.onerror=null;">
+                <span>Sistema PDV</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='vendas.html'">
+                    <i class="bi bi-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="sidebar-menu-item active">
+                    <i class="bi bi-box"></i>
+                    <span>Produtos</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='estoque.html'">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estoque</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='clientes.html'">
+                    <i class="bi bi-people"></i>
+                    <span>Clientes</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='scan.html'">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Scanner</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='configuracoes.html'">
+                    <i class="bi bi-gear"></i>
+                    <span>Configurações</span>
+                </div>
+                <div class="sidebar-menu-item" id="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Cabeçalho -->
+            <div class="header">
+                <div class="row">
+                    <div class="col">
+                        <h1>Produtos</h1>
+                    </div>
+                    <div class="col text-right">
+                        <span id="user-name">Usuário</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="content">
+                <!-- Cabeçalho com busca e botão novo -->
+                <div class="produtos-header">
+                    <div class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input 
+                            type="text" 
+                            id="produto-search" 
+                            placeholder="Buscar produto por nome ou código..." 
+                            autocomplete="off"
+                        >
+                    </div>
+                    
+                    <button class="btn btn-primary btn-novo-produto" onclick="window.location.href='produto-cadastro.html'">
+                        <i class="bi bi-plus-lg"></i>
+                        Novo Produto
+                    </button>
+                </div>
+                
+                <!-- Lista de produtos -->
+                <div id="produtos-container">
+                    <div class="produtos-grid" id="produtos-grid">
+                        <!-- Os produtos serão carregados aqui via JavaScript -->
+                    </div>
+                    
+                    <!-- Mensagem quando não há produtos -->
+                    <div class="produtos-empty" id="produtos-empty" style="display: none;">
+                        <i class="bi bi-box"></i>
+                        <h3>Nenhum produto encontrado</h3>
+                        <p>Comece cadastrando um novo produto ou verifique os critérios de busca.</p>
+                        <button class="btn btn-primary mt-3" onclick="window.location.href='produto-cadastro.html'">
+                            Cadastrar Produto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/core/utils.js"></script>
+    <script src="../js/core/database.js"></script>
+    <script src="../js/core/postgresql.js"></script>
+    <script src="../js/core/jwt.js"></script>
+    <script src="../js/core/auth.js"></script>
+    <script src="../js/core/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!window.auth || !window.auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar nome do usuário
+            const user = window.auth.getUsuarioLogado();
+            if (user) {
+                document.getElementById('user-name').textContent = user.nome || user.username;
+            }
+            
+            // Configurar evento de logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                window.auth.logout();
+                window.location.href = 'login.html';
+            });
+            
+            // Carregar produtos
+            await carregarProdutos();
+            
+            // Configurar busca
+            document.getElementById('produto-search').addEventListener('input', async (e) => {
+                const termoBusca = e.target.value.toLowerCase();
+                await filtrarProdutos(termoBusca);
+            });
+        });
+        
+        // Carregar produtos do banco
+        async function carregarProdutos() {
+            try {
+                let produtos = [];
+                
+                // Tentar usar API PostgreSQL
+                if (window.pg) {
+                    try {
+                        produtos = await window.pg.getAll('produtos');
+                    } catch (error) {
+                        console.warn('Erro ao carregar produtos da API, usando fallback local:', error);
+                    }
+                }
+                
+                // Fallback para banco local
+                if (produtos.length === 0 && window.db) {
+                    produtos = await window.db.getAllProdutos();
+                }
+                
+                renderizarProdutos(produtos);
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                window.core.showToast('Erro ao carregar produtos: ' + error.message, 'error');
+            }
+        }
+        
+        // Filtrar produtos
+        async function filtrarProdutos(termoBusca) {
+            try {
+                let produtos = [];
+                
+                // Tentar usar API PostgreSQL
+                if (window.pg) {
+                    try {
+                        // Em uma API real, poderíamos enviar o termo de busca para o backend
+                        // Por enquanto, buscamos todos e filtramos no cliente
+                        produtos = await window.pg.getAll('produtos');
+                    } catch (error) {
+                        console.warn('Erro ao carregar produtos da API, usando fallback local:', error);
+                    }
+                }
+                
+                // Fallback para banco local
+                if (produtos.length === 0 && window.db) {
+                    produtos = await window.db.getAllProdutos();
+                }
+                
+                // Filtrar produtos
+                if (termoBusca.trim() !== '') {
+                    produtos = produtos.filter(produto => 
+                        produto.nome.toLowerCase().includes(termoBusca) || 
+                        (produto.codigo && produto.codigo.toLowerCase().includes(termoBusca)) ||
+                        (produto.codigo_barras && produto.codigo_barras.toLowerCase().includes(termoBusca))
+                    );
+                }
+                
+                renderizarProdutos(produtos);
+            } catch (error) {
+                console.error('Erro ao filtrar produtos:', error);
+                window.core.showToast('Erro ao filtrar produtos: ' + error.message, 'error');
+            }
+        }
+        
+        // Renderizar produtos na tela
+        function renderizarProdutos(produtos) {
+            const gridContainer = document.getElementById('produtos-grid');
+            const emptyMessage = document.getElementById('produtos-empty');
+            
+            // Verificar se há produtos para exibir
+            if (produtos.length === 0) {
+                gridContainer.style.display = 'none';
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            // Exibir grid de produtos
+            gridContainer.style.display = 'grid';
+            emptyMessage.style.display = 'none';
+            
+            // Limpar grid
+            gridContainer.innerHTML = '';
+            
+            // Adicionar produtos ao grid
+            produtos.forEach(produto => {
+                // Determinar classe de estoque
+                let estoqueClass = 'estoque-bom';
+                let estoqueText = 'Estoque bom';
+                
+                if (produto.estoque <= 0) {
+                    estoqueClass = 'estoque-baixo';
+                    estoqueText = 'Sem estoque';
+                } else if (produto.estoque <= 5) {
+                    estoqueClass = 'estoque-baixo';
+                    estoqueText = 'Estoque baixo';
+                } else if (produto.estoque <= 10) {
+                    estoqueClass = 'estoque-medio';
+                    estoqueText = 'Estoque médio';
+                }
+                
+                // Criar cartão de produto
+                const produtoCard = document.createElement('div');
+                produtoCard.className = 'produto-card';
+                produtoCard.innerHTML = `
+                    <div class="produto-header">
+                        <h3 class="produto-title">${produto.nome}</h3>
+                        <span class="produto-price">${window.util.formatMoney(produto.preco)}</span>
+                    </div>
+                    <div class="produto-codigo">
+                        <span>Código: ${produto.codigo || 'N/A'}</span>
+                        ${produto.codigo_barras ? `<br><span>Código de Barras: ${produto.codigo_barras}</span>` : ''}
+                    </div>
+                    <div>
+                        <span class="produto-estoque ${estoqueClass}">
+                            <i class="bi bi-box"></i> ${estoqueText}: ${produto.estoque || 0} unidades
+                        </span>
+                    </div>
+                    <div class="produto-actions">
+                        <button class="btn btn-outline" onclick="editarProduto(${produto.id})">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                        <button class="btn btn-danger" onclick="removerProduto(${produto.id})">
+                            <i class="bi bi-trash"></i> Excluir
+                        </button>
+                    </div>
+                `;
+                
+                gridContainer.appendChild(produtoCard);
+            });
+        }
+        
+        // Editar produto
+        function editarProduto(id) {
+            window.location.href = `produto-cadastro.html?id=${id}`;
+        }
+        
+        // Remover produto
+        async function removerProduto(id) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                try {
+                    let sucesso = false;
+                    
+                    // Tentar usar API PostgreSQL
+                    if (window.pg) {
+                        try {
+                            await window.pg.remove('produtos', id);
+                            sucesso = true;
+                        } catch (error) {
+                            console.warn('Erro ao remover produto da API, tentando remover localmente:', error);
+                        }
+                    }
+                    
+                    // Fallback para banco local
+                    if (!sucesso && window.db) {
+                        await window.db.removeProduto(id);
+                        sucesso = true;
+                    }
+                    
+                    if (sucesso) {
+                        window.core.showToast('Produto removido com sucesso!', 'success');
+                        await carregarProdutos();
+                    } else {
+                        throw new Error('Não foi possível remover o produto');
+                    }
+                } catch (error) {
+                    console.error('Erro ao remover produto:', error);
+                    window.core.showToast('Erro ao remover produto: ' + error.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Sistema PDV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .clientes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .search-container input {
+            padding-left: 40px;
+            height: 45px;
+            border-radius: 30px;
+            border: 1px solid #e0e0e0;
+            width: 100%;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .btn-novo-cliente {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 12px 15px;
+            background-color: #f9f9f9;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .cliente-acoes {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .cliente-acoes button {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .cliente-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .cliente-modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cliente-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .cliente-modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .cliente-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .cliente-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cliente-empty {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .cliente-empty i {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .clientes-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .cliente-form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .cliente-acoes {
+                flex-direction: column;
+            }
+            
+            .cliente-acoes button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="../img/logo-small.png" alt="Logo" onerror="this.src='../img/logo-placeholder-small.png'; this.onerror=null;">
+                <span>Sistema PDV</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='vendas.html'">
+                    <i class="bi bi-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='produtos.html'">
+                    <i class="bi bi-box"></i>
+                    <span>Produtos</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='estoque.html'">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estoque</span>
+                </div>
+                <div class="sidebar-menu-item active">
+                    <i class="bi bi-people"></i>
+                    <span>Clientes</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='scan.html'">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Scanner</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='configuracoes.html'">
+                    <i class="bi bi-gear"></i>
+                    <span>Configurações</span>
+                </div>
+                <div class="sidebar-menu-item" id="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Cabeçalho -->
+            <div class="header">
+                <div class="row">
+                    <div class="col">
+                        <h1>Clientes</h1>
+                    </div>
+                    <div class="col text-right">
+                        <span id="user-name">Usuário</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="content">
+                <!-- Cabeçalho com busca e botão novo -->
+                <div class="clientes-header">
+                    <div class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input 
+                            type="text" 
+                            id="cliente-search" 
+                            placeholder="Buscar cliente..." 
+                            autocomplete="off"
+                        >
+                    </div>
+                    
+                    <button class="btn btn-primary btn-novo-cliente" id="btn-novo-cliente">
+                        <i class="bi bi-plus-lg"></i>
+                        Novo Cliente
+                    </button>
+                </div>
+                
+                <!-- Tabela de Clientes -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="clientes-tabela">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>CPF/CNPJ</th>
+                                        <th>E-mail</th>
+                                        <th>Telefone</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Os dados serão inseridos via JavaScript -->
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Cliente Padrão</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>
+                                            <div class="cliente-acoes">
+                                                <button class="btn btn-outline" onclick="editarCliente(1)">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </button>
+                                                <button class="btn btn-danger" onclick="removerCliente(1)">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>João da Silva</td>
+                                        <td>123.456.789-01</td>
+                                        <td>joao@email.com</td>
+                                        <td>(11) 99999-8888</td>
+                                        <td>
+                                            <div class="cliente-acoes">
+                                                <button class="btn btn-outline" onclick="editarCliente(2)">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </button>
+                                                <button class="btn btn-danger" onclick="removerCliente(2)">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Maria Santos</td>
+                                        <td>987.654.321-01</td>
+                                        <td>maria@email.com</td>
+                                        <td>(11) 99999-7777</td>
+                                        <td>
+                                            <div class="cliente-acoes">
+                                                <button class="btn btn-outline" onclick="editarCliente(3)">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </button>
+                                                <button class="btn btn-danger" onclick="removerCliente(3)">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Mensagem quando não há clientes -->
+                        <div class="cliente-empty" id="clientes-empty" style="display: none;">
+                            <i class="bi bi-person-x"></i>
+                            <h3>Nenhum cliente encontrado</h3>
+                            <p>Cadastre um novo cliente ou verifique os critérios de busca.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Novo/Editar Cliente -->
+    <div id="cliente-modal" class="cliente-modal">
+        <div class="cliente-modal-content">
+            <div class="cliente-modal-header">
+                <h3 class="cliente-modal-title" id="cliente-modal-title">Novo Cliente</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            
+            <form id="cliente-form">
+                <input type="hidden" id="cliente-id">
+                
+                <div class="form-group">
+                    <label for="cliente-nome">Nome *</label>
+                    <input type="text" id="cliente-nome" class="form-control" required>
+                </div>
+                
+                <div class="cliente-form-row">
+                    <div class="form-group">
+                        <label for="cliente-tipo-documento">Tipo Documento</label>
+                        <select id="cliente-tipo-documento" class="form-control">
+                            <option value="">Selecione...</option>
+                            <option value="CPF">CPF</option>
+                            <option value="CNPJ">CNPJ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cliente-documento">CPF / CNPJ</label>
+                        <input type="text" id="cliente-documento" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="cliente-form-row">
+                    <div class="form-group">
+                        <label for="cliente-email">E-mail</label>
+                        <input type="email" id="cliente-email" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cliente-telefone">Telefone</label>
+                        <input type="text" id="cliente-telefone" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cliente-endereco">Endereço</label>
+                    <textarea id="cliente-endereco" class="form-control" rows="2"></textarea>
+                </div>
+                
+                <div class="cliente-modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancel-cliente">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/core/utils.js"></script>
+    <script src="../js/core/database.js"></script>
+    <script src="../js/core/postgresql.js"></script>
+    <script src="../js/core/jwt.js"></script>
+    <script src="../js/core/auth.js"></script>
+    <script src="../js/core/app.js"></script>
+    <script>
+        // Estado da aplicação
+        const appState = {
+            clientes: [],
+            clienteAtual: null,
+            modoEdicao: false
+        };
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!window.auth || !window.auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar nome do usuário
+            const user = window.auth.getUsuarioLogado();
+            if (user) {
+                document.getElementById('user-name').textContent = user.nome || user.username;
+            }
+            
+            // Configurar evento de logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                window.auth.logout();
+                window.location.href = 'login.html';
+            });
+            
+            // Configurar modal de cliente
+            setupClienteModal();
+            
+            // Carregar clientes
+            await carregarClientes();
+            
+            // Configurar busca
+            document.getElementById('cliente-search').addEventListener('input', (e) => {
+                filtrarClientes(e.target.value);
+            });
+        });
+        
+        // Carregar clientes do banco
+        async function carregarClientes() {
+            try {
+                // Tentar usar API PostgreSQL
+                if (window.pg) {
+                    try {
+                        appState.clientes = await window.pg.getAll('clientes');
+                    } catch (error) {
+                        console.warn('Erro ao carregar clientes da API, usando fallback local:', error);
+                    }
+                }
+                
+                // Fallback para banco local
+                if (appState.clientes.length === 0 && window.db) {
+                    appState.clientes = await window.db.getAllClientes();
+                }
+                
+                // Se ainda não tiver clientes, usar os de exemplo
+                if (appState.clientes.length === 0) {
+                    appState.clientes = [
+                        { id: 1, nome: 'Cliente Padrão', documento: '', tipo_documento: '', email: '', telefone: '', endereco: '' },
+                        { id: 2, nome: 'João da Silva', documento: '123.456.789-01', tipo_documento: 'CPF', email: 'joao@email.com', telefone: '(11) 99999-8888', endereco: 'Rua A, 123' },
+                        { id: 3, nome: 'Maria Santos', documento: '987.654.321-01', tipo_documento: 'CPF', email: 'maria@email.com', telefone: '(11) 99999-7777', endereco: 'Rua B, 456' }
+                    ];
+                }
+                
+                // Renderizar clientes
+                renderizarClientes(appState.clientes);
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+                window.core.showToast('Erro ao carregar clientes: ' + error.message, 'error');
+            }
+        }
+        
+        // Renderizar clientes na tabela
+        function renderizarClientes(clientes) {
+            const tabela = document.getElementById('clientes-tabela');
+            const tbody = tabela.querySelector('tbody');
+            const emptyMessage = document.getElementById('clientes-empty');
+            
+            // Verificar se há clientes para exibir
+            if (clientes.length === 0) {
+                tbody.innerHTML = '';
+                tabela.style.display = 'none';
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            // Exibir tabela
+            tabela.style.display = 'table';
+            emptyMessage.style.display = 'none';
+            
+            // Limpar tabela
+            tbody.innerHTML = '';
+            
+            // Adicionar clientes à tabela
+            clientes.forEach(cliente => {
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td>${cliente.id}</td>
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.documento || '-'}</td>
+                    <td>${cliente.email || '-'}</td>
+                    <td>${cliente.telefone || '-'}</td>
+                    <td>
+                        <div class="cliente-acoes">
+                            <button class="btn btn-outline" onclick="editarCliente(${cliente.id})">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                            <button class="btn btn-danger" onclick="removerCliente(${cliente.id})">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Filtrar clientes
+        function filtrarClientes(termo) {
+            if (!termo) {
+                renderizarClientes(appState.clientes);
+                return;
+            }
+            
+            termo = termo.toLowerCase();
+            
+            const filtrados = appState.clientes.filter(cliente => 
+                cliente.nome.toLowerCase().includes(termo) ||
+                (cliente.documento && cliente.documento.toLowerCase().includes(termo)) ||
+                (cliente.email && cliente.email.toLowerCase().includes(termo)) ||
+                (cliente.telefone && cliente.telefone.toLowerCase().includes(termo))
+            );
+            
+            renderizarClientes(filtrados);
+        }
+        
+        // Configurar modal de cliente
+        function setupClienteModal() {
+            const modal = document.getElementById('cliente-modal');
+            const form = document.getElementById('cliente-form');
+            const btnNovoCliente = document.getElementById('btn-novo-cliente');
+            const btnClose = document.getElementById('close-modal');
+            const btnCancel = document.getElementById('cancel-cliente');
+            
+            // Evento de abrir modal para novo cliente
+            btnNovoCliente.addEventListener('click', () => {
+                document.getElementById('cliente-modal-title').textContent = 'Novo Cliente';
+                document.getElementById('cliente-id').value = '';
+                document.getElementById('cliente-nome').value = '';
+                document.getElementById('cliente-tipo-documento').value = '';
+                document.getElementById('cliente-documento').value = '';
+                document.getElementById('cliente-email').value = '';
+                document.getElementById('cliente-telefone').value = '';
+                document.getElementById('cliente-endereco').value = '';
+                
+                appState.modoEdicao = false;
+                
+                modal.style.display = 'block';
+            });
+            
+            // Eventos para fechar modal
+            btnClose.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            btnCancel.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // Fechar modal ao clicar fora
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Evento de submit do formulário
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Obter dados do formulário
+                const id = document.getElementById('cliente-id').value;
+                const nome = document.getElementById('cliente-nome').value;
+                const tipoDocumento = document.getElementById('cliente-tipo-documento').value;
+                const documento = document.getElementById('cliente-documento').value;
+                const email = document.getElementById('cliente-email').value;
+                const telefone = document.getElementById('cliente-telefone').value;
+                const endereco = document.getElementById('cliente-endereco').value;
+                
+                // Validação básica
+                if (!nome) {
+                    window.core.showToast('Nome é obrigatório', 'error');
+                    return;
+                }
+                
+                // Preparar dados
+                const clienteData = {
+                    nome,
+                    tipo_documento: tipoDocumento,
+                    documento,
+                    email,
+                    telefone,
+                    endereco
+                };
+                
+                try {
+                    let resultado = null;
+                    
+                    if (appState.modoEdicao) {
+                        // Atualizar cliente existente
+                        // Tentar usar API PostgreSQL
+                        if (window.pg) {
+                            try {
+                                resultado = await window.pg.update('clientes', parseInt(id), clienteData);
+                            } catch (error) {
+                                console.warn('Erro ao atualizar cliente na API, usando fallback local:', error);
+                            }
+                        }
+                        
+                        // Fallback para banco local
+                        if (!resultado && window.db) {
+                            resultado = await window.db.updateCliente(parseInt(id), clienteData);
+                        }
+                        
+                        // Atualizar na lista local
+                        if (!resultado) {
+                            const index = appState.clientes.findIndex(c => c.id === parseInt(id));
+                            if (index !== -1) {
+                                appState.clientes[index] = {
+                                    id: parseInt(id),
+                                    ...clienteData
+                                };
+                                resultado = appState.clientes[index];
+                            }
+                        }
+                        
+                        window.core.showToast('Cliente atualizado com sucesso!', 'success');
+                    } else {
+                        // Criar novo cliente
+                        // Tentar usar API PostgreSQL
+                        if (window.pg) {
+                            try {
+                                resultado = await window.pg.create('clientes', clienteData);
+                            } catch (error) {
+                                console.warn('Erro ao criar cliente na API, usando fallback local:', error);
+                            }
+                        }
+                        
+                        // Fallback para banco local
+                        if (!resultado && window.db) {
+                            resultado = await window.db.createCliente(clienteData);
+                        }
+                        
+                        // Criar na lista local
+                        if (!resultado) {
+                            const novoId = Math.max(...appState.clientes.map(c => c.id), 0) + 1;
+                            resultado = {
+                                id: novoId,
+                                ...clienteData
+                            };
+                            appState.clientes.push(resultado);
+                        }
+                        
+                        window.core.showToast('Cliente cadastrado com sucesso!', 'success');
+                    }
+                    
+                    // Fechar modal e atualizar lista
+                    modal.style.display = 'none';
+                    renderizarClientes(appState.clientes);
+                } catch (error) {
+                    console.error('Erro ao salvar cliente:', error);
+                    window.core.showToast('Erro ao salvar cliente: ' + error.message, 'error');
+                }
+            });
+        }
+        
+        // Editar cliente
+        async function editarCliente(id) {
+            try {
+                let cliente = null;
+                
+                // Buscar cliente na lista local
+                cliente = appState.clientes.find(c => c.id === id);
+                
+                if (!cliente) {
+                    // Tentar buscar da API
+                    if (window.pg) {
+                        try {
+                            cliente = await window.pg.getById('clientes', id);
+                        } catch (error) {
+                            console.warn('Erro ao buscar cliente da API:', error);
+                        }
+                    }
+                    
+                    // Fallback para banco local
+                    if (!cliente && window.db) {
+                        cliente = await window.db.getClienteById(id);
+                    }
+                }
+                
+                if (!cliente) {
+                    throw new Error('Cliente não encontrado');
+                }
+                
+                // Preencher formulário
+                document.getElementById('cliente-modal-title').textContent = 'Editar Cliente';
+                document.getElementById('cliente-id').value = cliente.id;
+                document.getElementById('cliente-nome').value = cliente.nome || '';
+                document.getElementById('cliente-tipo-documento').value = cliente.tipo_documento || '';
+                document.getElementById('cliente-documento').value = cliente.documento || '';
+                document.getElementById('cliente-email').value = cliente.email || '';
+                document.getElementById('cliente-telefone').value = cliente.telefone || '';
+                document.getElementById('cliente-endereco').value = cliente.endereco || '';
+                
+                appState.modoEdicao = true;
+                
+                // Abrir modal
+                document.getElementById('cliente-modal').style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao carregar cliente para edição:', error);
+                window.core.showToast('Erro ao carregar cliente: ' + error.message, 'error');
+            }
+        }
+        
+        // Remover cliente
+        async function removerCliente(id) {
+            if (!confirm('Tem certeza que deseja excluir este cliente?')) {
+                return;
+            }
+            
+            try {
+                let sucesso = false;
+                
+                // Tentar usar API PostgreSQL
+                if (window.pg) {
+                    try {
+                        await window.pg.remove('clientes', id);
+                        sucesso = true;
+                    } catch (error) {
+                        console.warn('Erro ao remover cliente da API, tentando remover localmente:', error);
+                    }
+                }
+                
+                // Fallback para banco local
+                if (!sucesso && window.db) {
+                    await window.db.removeCliente(id);
+                    sucesso = true;
+                }
+                
+                // Remover da lista local
+                if (!sucesso) {
+                    const index = appState.clientes.findIndex(c => c.id === id);
+                    if (index !== -1) {
+                        appState.clientes.splice(index, 1);
+                        sucesso = true;
+                    }
+                } else {
+                    // Atualizar lista local
+                    const index = appState.clientes.findIndex(c => c.id === id);
+                    if (index !== -1) {
+                        appState.clientes.splice(index, 1);
+                    }
+                }
+                
+                if (sucesso) {
+                    window.core.showToast('Cliente removido com sucesso!', 'success');
+                    renderizarClientes(appState.clientes);
+                } else {
+                    throw new Error('Não foi possível remover o cliente');
+                }
+            } catch (error) {
+                console.error('Erro ao remover cliente:', error);
+                window.core.showToast('Erro ao remover cliente: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

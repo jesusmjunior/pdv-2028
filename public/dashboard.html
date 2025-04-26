@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema PDV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="../img/logo-small.png" alt="Logo" onerror="this.src='../img/logo-placeholder-small.png'; this.onerror=null;">
+                <span>Sistema PDV</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-item active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='vendas.html'">
+                    <i class="bi bi-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='produtos.html'">
+                    <i class="bi bi-box"></i>
+                    <span>Produtos</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='estoque.html'">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estoque</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='clientes.html'">
+                    <i class="bi bi-people"></i>
+                    <span>Clientes</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='relatorios.html'">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Relatórios</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='configuracoes.html'">
+                    <i class="bi bi-gear"></i>
+                    <span>Configurações</span>
+                </div>
+                <div class="sidebar-menu-item" id="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Cabeçalho -->
+            <div class="header">
+                <div class="row">
+                    <div class="col">
+                        <h1>Dashboard</h1>
+                    </div>
+                    <div class="col text-right">
+                        <span id="user-name">Usuário</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="content">
+                <!-- Indicadores (Cards) -->
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Vendas Hoje</h3>
+                                <h2 class="text-primary" id="vendas-hoje">R$ 0,00</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Vendas Mês</h3>
+                                <h2 class="text-success" id="vendas-mes">R$ 0,00</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Produtos</h3>
+                                <h2 class="text-warning" id="total-produtos">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Clientes</h3>
+                                <h2 class="text-info" id="total-clientes">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Últimas Vendas -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Últimas Vendas
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data</th>
+                                    <th>Cliente</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-vendas">
+                                <tr>
+                                    <td colspan="5" class="text-center">Nenhuma venda registrada</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Produtos com Estoque Baixo -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Produtos com Estoque Baixo
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Produto</th>
+                                    <th>Estoque Atual</th>
+                                    <th>Mínimo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-estoque-baixo">
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum produto com estoque baixo</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/core/utils.js"></script>
+    <script src="../js/core/database.js"></script>
+    <script src="../js/core/auth.js"></script>
+    <script src="../js/core/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!window.auth || !window.auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar nome do usuário
+            const user = window.auth.getUsuarioLogado();
+            if (user) {
+                document.getElementById('user-name').textContent = user.nome || user.username;
+            }
+            
+            // Configurar evento de logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                window.auth.logout();
+                window.location.href = 'login.html';
+            });
+            
+            // Inicializar página
+            if (typeof window.initDashboardPage === 'function') {
+                window.initDashboardPage();
+            }
+            
+            // Carregar estatísticas simuladas para exemplo
+            loadDashboardData();
+        });
+        
+        async function loadDashboardData() {
+            // Simulação de dados para exemplo
+            // Em uma implementação real, estes dados viriam do banco
+            
+            // Indicadores
+            document.getElementById('vendas-hoje').textContent = window.util.formatMoney(1250.50);
+            document.getElementById('vendas-mes').textContent = window.util.formatMoney(15690.75);
+            
+            // Carregar produtos
+            const produtos = await window.db.getAllProdutos();
+            document.getElementById('total-produtos').textContent = produtos.length;
+            
+            // Carregar clientes
+            const clientes = await window.db.getAllClientes();
+            document.getElementById('total-clientes').textContent = clientes.length;
+            
+            // Simulação de vendas recentes
+            const vendasSimuladas = [
+                { id: 3, data: new Date(), cliente: 'Cliente Exemplo', valor: 450.75, status: 'Concluída' },
+                { id: 2, data: new Date(Date.now() - 86400000), cliente: 'João Silva', valor: 120.00, status: 'Concluída' },
+                { id: 1, data: new Date(Date.now() - 172800000), cliente: 'Maria Santos', valor: 89.90, status: 'Concluída' }
+            ];
+            
+            const tabelaVendas = document.getElementById('tabela-vendas');
+            if (vendasSimuladas.length > 0) {
+                tabelaVendas.innerHTML = '';
+                
+                vendasSimuladas.forEach(venda => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${venda.id}</td>
+                        <td>${window.util.formatDateTime(venda.data)}</td>
+                        <td>${venda.cliente}</td>
+                        <td>${window.util.formatMoney(venda.valor)}</td>
+                        <td><span class="text-success">${venda.status}</span></td>
+                    `;
+                    tabelaVendas.appendChild(tr);
+                });
+            }
+            
+            // Simulação de produtos com estoque baixo
+            const produtosBaixoEstoque = [
+                { codigo: 'P001', nome: 'Produto 1', estoque: 3, minimo: 5 },
+                { codigo: 'P003', nome: 'Produto 3', estoque: 2, minimo: 10 }
+            ];
+            
+            const tabelaEstoqueBaixo = document.getElementById('tabela-estoque-baixo');
+            if (produtosBaixoEstoque.length > 0) {
+                tabelaEstoqueBaixo.innerHTML = '';
+                
+                produtosBaixoEstoque.forEach(produto => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${produto.codigo}</td>
+                        <td>${produto.nome}</td>
+                        <td class="text-danger">${produto.estoque}</td>
+                        <td>${produto.minimo}</td>
+                    `;
+                    tabelaEstoqueBaixo.appendChild(tr);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
