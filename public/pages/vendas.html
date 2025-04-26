@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendas - Sistema PDV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .vendas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .search-container input {
+            padding-left: 40px;
+            height: 45px;
+            border-radius: 30px;
+            border: 1px solid #e0e0e0;
+            width: 100%;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .btn-nova-venda {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        
+        .vendas-filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .filtro-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .venda-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .venda-card-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .venda-card-body {
+            padding: 15px;
+        }
+        
+        .venda-card-footer {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .venda-numero {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .venda-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-concluida {
+            background-color: #E8F5E9;
+            color: var(--success-color);
+        }
+        
+        .status-pendente {
+            background-color: #FFF8E1;
+            color: var(--warning-color);
+        }
+        
+        .status-cancelada {
+            background-color: #FFEBEE;
+            color: var(--danger-color);
+        }
+        
+        .venda-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .venda-info-item {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .venda-info-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .venda-info-valor {
+            font-weight: 600;
+        }
+        
+        .venda-produtos {
+            margin-top: 15px;
+        }
+        
+        .venda-produtos-header {
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .venda-produto-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .venda-produto-nome {
+            flex: 3;
+        }
+        
+        .venda-produto-qtd, .venda-produto-preco, .venda-produto-subtotal {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .venda-produto-qtd {
+            color: #666;
+        }
+        
+        .venda-total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .venda-acoes {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .venda-acoes button {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .venda-pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .venda-pagination-item {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+        }
+        
+        .venda-pagination-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .venda-empty {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .venda-empty i {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .vendas-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .venda-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="../img/logo-small.png" alt="Logo" onerror="this.src='../img/logo-placeholder-small.png'; this.onerror=null;">
+                <span>Sistema PDV</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-menu-item active">
+                    <i class="bi bi-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='produtos.html'">
+                    <i class="bi bi-box"></i>
+                    <span>Produtos</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='estoque.html'">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estoque</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='clientes.html'">
+                    <i class="bi bi-people"></i>
+                    <span>Clientes</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='scan.html'">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Scanner</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='configuracoes.html'">
+                    <i class="bi bi-gear"></i>
+                    <span>Configurações</span>
+                </div>
+                <div class="sidebar-menu-item" id="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Cabeçalho -->
+            <div class="header">
+                <div class="row">
+                    <div class="col">
+                        <h1>Vendas</h1>
+                    </div>
+                    <div class="col text-right">
+                        <span id="user-name">Usuário</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="content">
+                <!-- Cabeçalho com busca e botão novo -->
+                <div class="vendas-header">
+                    <div class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input 
+                            type="text" 
+                            id="venda-search" 
+                            placeholder="Buscar venda por número ou cliente..." 
+                            autocomplete="off"
+                        >
+                    </div>
+                    
+                    <button class="btn btn-primary btn-nova-venda" onclick="window.location.href='venda-nova.html'">
+                        <i class="bi bi-plus-lg"></i>
+                        Nova Venda
+                    </button>
+                </div>
+                
+                <!-- Filtros -->
+                <div class="vendas-filtros">
+                    <div class="filtro-item">
+                        <label for="filtro-data-inicio">Data Início</label>
+                        <input type="date" id="filtro-data-inicio" class="form-control">
+                    </div>
+                    
+                    <div class="filtro-item">
+                        <label for="filtro-data-fim">Data Fim</label>
+                        <input type="date" id="filtro-data-fim" class="form-control">
+                    </div>
+                    
+                    <div class="filtro-item">
+                        <label for="filtro-status">Status</label>
+                        <select id="filtro-status" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="concluida">Concluída</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filtro-item">
+                        <label>&nbsp;</label>
+                        <button id="btn-filtrar" class="btn btn-primary form-control">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de vendas -->
+                <div id="vendas-container">
+                    <!-- As vendas serão carregadas aqui via JavaScript -->
+                    
+                    <!-- Exemplo de venda -->
+                    <div class="venda-card">
+                        <div class="venda-card-header">
+                            <div class="venda-numero">Venda #1001</div>
+                            <div class="venda-status status-concluida">Concluída</div>
+                        </div>
+                        
+                        <div class="venda-card-body">
+                            <div class="venda-info">
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Data</div>
+                                    <div class="venda-info-valor">25/04/2023 15:30</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Cliente</div>
+                                    <div class="venda-info-valor">João da Silva</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Vendedor</div>
+                                    <div class="venda-info-valor">Admin</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Pagamento</div>
+                                    <div class="venda-info-valor">Cartão de Crédito</div>
+                                </div>
+                            </div>
+                            
+                            <div class="venda-produtos">
+                                <div class="venda-produtos-header">
+                                    <div class="row">
+                                        <div class="col" style="flex: 3">Produto</div>
+                                        <div class="col text-right" style="flex: 1">Qtd</div>
+                                        <div class="col text-right" style="flex: 1">Preço</div>
+                                        <div class="col text-right" style="flex: 1">Subtotal</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="venda-produto-item">
+                                    <div class="venda-produto-nome">Arroz 5kg</div>
+                                    <div class="venda-produto-qtd">2x</div>
+                                    <div class="venda-produto-preco">R$ 22,90</div>
+                                    <div class="venda-produto-subtotal">R$ 45,80</div>
+                                </div>
+                                
+                                <div class="venda-produto-item">
+                                    <div class="venda-produto-nome">Feijão 1kg</div>
+                                    <div class="venda-produto-qtd">3x</div>
+                                    <div class="venda-produto-preco">R$ 8,90</div>
+                                    <div class="venda-produto-subtotal">R$ 26,70</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="venda-card-footer">
+                            <div class="venda-total">Total: R$ 72,50</div>
+                            
+                            <div class="venda-acoes">
+                                <button class="btn btn-outline" onclick="verDetalhesVenda(1001)">
+                                    <i class="bi bi-eye"></i> Detalhes
+                                </button>
+                                
+                                <button class="btn btn-primary" onclick="imprimirRecibo(1001)">
+                                    <i class="bi bi-printer"></i> Imprimir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Exemplo de venda 2 -->
+                    <div class="venda-card">
+                        <div class="venda-card-header">
+                            <div class="venda-numero">Venda #1002</div>
+                            <div class="venda-status status-pendente">Pendente</div>
+                        </div>
+                        
+                        <div class="venda-card-body">
+                            <div class="venda-info">
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Data</div>
+                                    <div class="venda-info-valor">25/04/2023 16:45</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Cliente</div>
+                                    <div class="venda-info-valor">Maria Santos</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Vendedor</div>
+                                    <div class="venda-info-valor">Admin</div>
+                                </div>
+                                
+                                <div class="venda-info-item">
+                                    <div class="venda-info-label">Pagamento</div>
+                                    <div class="venda-info-valor">Dinheiro</div>
+                                </div>
+                            </div>
+                            
+                            <div class="venda-produtos">
+                                <div class="venda-produtos-header">
+                                    <div class="row">
+                                        <div class="col" style="flex: 3">Produto</div>
+                                        <div class="col text-right" style="flex: 1">Qtd</div>
+                                        <div class="col text-right" style="flex: 1">Preço</div>
+                                        <div class="col text-right" style="flex: 1">Subtotal</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="venda-produto-item">
+                                    <div class="venda-produto-nome">Açúcar 1kg</div>
+                                    <div class="venda-produto-qtd">2x</div>
+                                    <div class="venda-produto-preco">R$ 4,50</div>
+                                    <div class="venda-produto-subtotal">R$ 9,00</div>
+                                </div>
+                                
+                                <div class="venda-produto-item">
+                                    <div class="venda-produto-nome">Café 500g</div>
+                                    <div class="venda-produto-qtd">1x</div>
+                                    <div class="venda-produto-preco">R$ 12,90</div>
+                                    <div class="venda-produto-subtotal">R$ 12,90</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="venda-card-footer">
+                            <div class="venda-total">Total: R$ 21,90</div>
+                            
+                            <div class="venda-acoes">
+                                <button class="btn btn-outline" onclick="verDetalhesVenda(1002)">
+                                    <i class="bi bi-eye"></i> Detalhes
+                                </button>
+                                
+                                <button class="btn btn-success" onclick="concluirVenda(1002)">
+                                    <i class="bi bi-check-lg"></i> Concluir
+                                </button>
+                                
+                                <button class="btn btn-danger" onclick="cancelarVenda(1002)">
+                                    <i class="bi bi-x-lg"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Paginação -->
+                    <div class="venda-pagination">
+                        <div class="venda-pagination-item active">1</div>
+                        <div class="venda-pagination-item">2</div>
+                        <div class="venda-pagination-item">3</div>
+                    </div>
+                </div>
+                
+                <!-- Mensagem quando não há vendas -->
+                <div class="venda-empty" id="vendas-empty" style="display: none;">
+                    <i class="bi bi-cart-x"></i>
+                    <h3>Nenhuma venda encontrada</h3>
+                    <p>Comece criando uma nova venda ou verifique os critérios de busca.</p>
+                    <button class="btn btn-primary mt-3" onclick="window.location.href='venda-nova.html'">
+                        Nova Venda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/core/utils.js"></script>
+    <script src="../js/core/database.js"></script>
+    <script src="../js/core/postgresql.js"></script>
+    <script src="../js/core/jwt.js"></script>
+    <script src="../js/core/auth.js"></script>
+    <script src="../js/core/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!window.auth || !window.auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar nome do usuário
+            const user = window.auth.getUsuarioLogado();
+            if (user) {
+                document.getElementById('user-name').textContent = user.nome || user.username;
+            }
+            
+            // Configurar evento de logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                window.auth.logout();
+                window.location.href = 'login.html';
+            });
+            
+            // Em uma implementação real, carregar vendas aqui
+            // await carregarVendas();
+            
+            // Configurar filtros
+            document.getElementById('btn-filtrar').addEventListener('click', () => {
+                // Em uma implementação real, filtrar vendas aqui
+                window.core.showToast('Filtros aplicados!', 'info');
+            });
+        });
+        
+        // Funções para manipulação de vendas
+        function verDetalhesVenda(id) {
+            window.location.href = `venda-detalhes.html?id=${id}`;
+        }
+        
+        function imprimirRecibo(id) {
+            // Em uma implementação real, isso abriria uma janela de impressão
+            window.core.showToast('Preparando impressão...', 'info');
+            setTimeout(() => {
+                alert('Impressão simulada para a venda #' + id);
+            }, 1000);
+        }
+        
+        function concluirVenda(id) {
+            if (confirm(`Deseja concluir a venda #${id}?`)) {
+                // Em uma implementação real, alteraria o status da venda no banco
+                window.core.showToast('Venda concluída com sucesso!', 'success');
+                
+                // Recarregar vendas após conclusão
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+        
+        function cancelarVenda(id) {
+            if (confirm(`Tem certeza que deseja cancelar a venda #${id}?`)) {
+                // Em uma implementação real, alteraria o status da venda no banco
+                window.core.showToast('Venda cancelada!', 'warning');
+                
+                // Recarregar vendas após cancelamento
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
