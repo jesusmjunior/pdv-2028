@@ -1,0 +1,68 @@
+services:
+  # Serviço de API
+  - type: web
+    name: orion-pdv-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    repo: https://github.com/jesus-pdv/orion-pdv.git # Atualize conforme seu usuário GitHub
+    branch: main
+    buildFilter:
+      paths:
+        - api/**
+        - package.json
+        - package-lock.json
+        - .env
+    healthCheckPath: /api/system/status
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: orion-pdv-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: orion-pdv-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: orion-pdv-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: orion-pdv-db
+          property: database
+      - key: DB_PORT
+        fromDatabase:
+          name: orion-pdv-db
+          property: port
+      - key: JWT_SECRET
+        sync: false # Valor a ser definido no dashboard do Render
+      - key: PORT
+        value: 3000
+
+  # Serviço de Site Estático
+  - type: web
+    name: orion-pdv-web
+    env: static
+    buildCommand: cp -r src/* .
+    staticPublishPath: ./
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /pages/index.html
+    buildFilter:
+      paths:
+        - src/**
+    envVars:
+      - key: API_URL
+        value: https://orion-pdv-api.onrender.com
+        
+databases:
+  # Banco de dados PostgreSQL
+  - name: orion-pdv-db
+    plan: free
+    databaseName: orion_pdv
+    user: orion_app
