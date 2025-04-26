@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor de Código de Barras - Sistema PDV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .scanner-container {
+            width: 100%;
+            height: 80vh;
+            max-height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanner-result {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            min-width: 280px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .scanner-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-scanner {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .produto-info {
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .produto-info.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .manual-input {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .manual-input-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+        
+        .manual-input-form {
+            display: none;
+        }
+        
+        .manual-input-form.active {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="../img/logo-small.png" alt="Logo" onerror="this.src='../img/logo-placeholder-small.png'; this.onerror=null;">
+                <span>Sistema PDV</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='vendas.html'">
+                    <i class="bi bi-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='produtos.html'">
+                    <i class="bi bi-box"></i>
+                    <span>Produtos</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='estoque.html'">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estoque</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='clientes.html'">
+                    <i class="bi bi-people"></i>
+                    <span>Clientes</span>
+                </div>
+                <div class="sidebar-menu-item active">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Scanner</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="window.location.href='configuracoes.html'">
+                    <i class="bi bi-gear"></i>
+                    <span>Configurações</span>
+                </div>
+                <div class="sidebar-menu-item" id="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Cabeçalho -->
+            <div class="header">
+                <div class="row">
+                    <div class="col">
+                        <h1>Leitor de Código de Barras</h1>
+                    </div>
+                    <div class="col text-right">
+                        <span id="user-name">Usuário</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="content">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="scanner-container" class="scanner-container">
+                            <!-- Scanner será inicializado aqui -->
+                            <div id="scanner-placeholder" style="text-align: center; padding: 20px;">
+                                <i class="bi bi-camera" style="font-size: 48px; color: #ccc;"></i>
+                                <p>O scanner será inicializado aqui</p>
+                            </div>
+                        </div>
+                        
+                        <div id="scanner-result" class="scanner-result" style="display: none;">
+                            <h3>Código de Barras:</h3>
+                            <p id="barcode-value" style="font-size: 1.2rem; font-weight: bold;"></p>
+                            
+                            <div class="produto-info" id="produto-info">
+                                <h4 id="produto-nome">Nome do Produto</h4>
+                                <p>Preço: <span id="produto-preco">R$ 0,00</span></p>
+                                <p>Estoque: <span id="produto-estoque">0</span> unidades</p>
+                            </div>
+                            
+                            <div class="scanner-actions">
+                                <button id="add-produto-btn" class="btn btn-primary btn-scanner">
+                                    <i class="bi bi-cart-plus"></i> Adicionar
+                                </button>
+                                <button id="nova-leitura-btn" class="btn btn-outline btn-scanner">
+                                    <i class="bi bi-camera"></i> Nova Leitura
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="manual-input">
+                            <div class="manual-input-toggle" id="manual-input-toggle">
+                                Ou digite o código de barras manualmente
+                            </div>
+                            
+                            <div class="manual-input-form" id="manual-input-form">
+                                <div class="form-group">
+                                    <label for="codigo-barras">Código de Barras</label>
+                                    <input type="text" id="codigo-barras" placeholder="Digite o código de barras" class="form-control">
+                                </div>
+                                <button id="buscar-codigo-btn" class="btn btn-primary">Buscar Produto</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="../js/core/utils.js"></script>
+    <script src="../js/core/database.js"></script>
+    <script src="../js/core/postgresql.js"></script>
+    <script src="../js/core/jwt.js"></script>
+    <script src="../js/core/auth.js"></script>
+    <script src="../js/core/app.js"></script>
+    <script src="../js/modules/scanner/barcode-scanner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!window.auth || !window.auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Mostrar nome do usuário
+            const user = window.auth.getUsuarioLogado();
+            if (user) {
+                document.getElementById('user-name').textContent = user.nome || user.username;
+            }
+            
+            // Configurar evento de logout
+            document.getElementById('logout-button').addEventListener('click', () => {
+                // Parar scanner antes de sair
+                if (window.barcodeScanner && window.barcodeScanner.isActive()) {
+                    window.barcodeScanner.stop();
+                }
+                
+                window.auth.logout();
+                window.location.href = 'login.html';
+            });
+            
+            // Verificar se o navegador suporta câmera
+            try {
+                await window.barcodeScanner.checkCameraAvailability();
+                initScanner();
+            } catch (error) {
+                document.getElementById('scanner-placeholder').innerHTML = `
+                    <div class="error-message" style="padding: 20px; text-align: center;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: var(--danger-color);"></i>
+                        <p>Não foi possível acessar a câmera. Verifique as permissões do navegador.</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                
+                // Mostrar entrada manual
+                document.getElementById('manual-input-form').classList.add('active');
+            }
+            
+            // Configurar entrada manual
+            document.getElementById('manual-input-toggle').addEventListener('click', () => {
+                document.getElementById('manual-input-form').classList.toggle('active');
+            });
+            
+            document.getElementById('buscar-codigo-btn').addEventListener('click', async () => {
+                const codigoBarras = document.getElementById('codigo-barras').value.trim();
+                if (codigoBarras) {
+                    await processarCodigoBarras(codigoBarras);
+                }
+            });
+            
+            // Botões do resultado
+            document.getElementById('nova-leitura-btn').addEventListener('click', () => {
+                resetScanner();
+            });
+            
+            document.getElementById('add-produto-btn').addEventListener('click', () => {
+                const codigoBarras = document.getElementById('barcode-value').textContent;
+                adicionarProdutoVenda(codigoBarras);
+            });
+        });
+        
+        // Inicializar scanner
+        async function initScanner() {
+            try {
+                await window.barcodeScanner.init('scanner-container');
+                
+                // Ocultar placeholder
+                document.getElementById('scanner-placeholder').style.display = 'none';
+                
+                // Iniciar scanner
+                await window.barcodeScanner.start(async (code) => {
+                    // Parar scanner após detecção
+                    window.barcodeScanner.stop();
+                    
+                    // Processar código de barras
+                    await processarCodigoBarras(code);
+                });
+            } catch (error) {
+                console.error('Erro ao inicializar scanner:', error);
+                document.getElementById('scanner-placeholder').innerHTML = `
+                    <div class="error-message" style="padding: 20px; text-align: center;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 48px; color: var(--danger-color);"></i>
+                        <p>Erro ao inicializar scanner.</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                
+                // Mostrar entrada manual
+                document.getElementById('manual-input-form').classList.add('active');
+            }
+        }
+        
+        // Resetar scanner para nova leitura
+        function resetScanner() {
+            document.getElementById('scanner-result').style.display = 'none';
+            document.getElementById('produto-info').classList.remove('active');
+            document.getElementById('barcode-value').textContent = '';
+            
+            // Reiniciar scanner
+            if (window.barcodeScanner) {
+                window.barcodeScanner.start(async (code) => {
+                    window.barcodeScanner.stop();
+                    await processarCodigoBarras(code);
+                });
+            }
+        }
+        
+        // Processar código de barras
+        async function processarCodigoBarras(code) {
+            document.getElementById('barcode-value').textContent = code;
+            document.getElementById('scanner-result').style.display = 'block';
+            
+            // Buscar produto pelo código de barras
+            try {
+                // Tentar buscar na API
+                let produto = null;
+                
+                // Usar API PostgreSQL
+                if (window.pg) {
+                    produto = await window.pg.getProdutoPorCodigoBarras(code);
+                }
+                
+                // Fallback para banco local
+                if (!produto && window.db) {
+                    const produtos = await window.db.getAllProdutos();
+                    produto = produtos.find(p => p.codigo_barras === code || p.codigo === code);
+                }
+                
+                // Exibir resultado
+                if (produto) {
+                    document.getElementById('produto-nome').textContent = produto.nome;
+                    document.getElementById('produto-preco').textContent = window.util.formatMoney(produto.preco);
+                    document.getElementById('produto-estoque').textContent = produto.estoque || 'N/A';
+                    document.getElementById('produto-info').classList.add('active');
+                } else {
+                    // Produto não encontrado
+                    document.getElementById('produto-info').innerHTML = `
+                        <div class="error-message">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <p>Produto não encontrado para o código de barras: ${code}</p>
+                        </div>
+                        <button id="cadastrar-produto-btn" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle"></i> Cadastrar Novo Produto
+                        </button>
+                    `;
+                    document.getElementById('produto-info').classList.add('active');
+                    
+                    // Evento para cadastrar produto
+                    document.getElementById('cadastrar-produto-btn').addEventListener('click', () => {
+                        // Redirecionar para página de cadastro com o código de barras preenchido
+                        window.location.href = `produto-cadastro.html?codigo_barras=${encodeURIComponent(code)}`;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao buscar produto:', error);
+                document.getElementById('produto-info').innerHTML = `
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Erro ao buscar produto: ${error.message}</p>
+                    </div>
+                `;
+                document.getElementById('produto-info').classList.add('active');
+            }
+        }
+        
+        // Adicionar produto à venda
+        function adicionarProdutoVenda(codigoBarras) {
+            // Obter venda atual do sessionStorage
+            let vendaAtual = JSON.parse(sessionStorage.getItem('vendaAtual') || '{"itens":[]}');
+            
+            // Buscar produto pelo código de barras e adicionar à venda
+            // (Em um sistema real, isso seria feito pela API)
+            
+            // Exibir mensagem
+            window.core.showToast('Produto adicionado à venda!', 'success');
+            
+            // Redirecionar para página de venda
+            setTimeout(() => {
+                window.location.href = 'venda-nova.html';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
